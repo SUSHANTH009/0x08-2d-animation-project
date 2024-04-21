@@ -1,6 +1,6 @@
 # 0x08 : 2D Animations (Project) #
 
-![](./assets/teaser.png)
+![](.102117149_102117162_0x08_project_storyboard.jpeg)
 
 ### Storyboard ###
 
