@@ -1,87 +1,124 @@
 <!DOCTYPE html>
-<html lang="en" class="h-full w-full">
-  <head>
-    <title>0x08 : 2D Animations (Project)</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script type="module" src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.esm.js"></script>
-    <script nomodule src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.js"></script>
-  </head>
-  <body class="h-full w-full text-sm">
-    <div class="container flex flex-col nowrap gap-2
-                p-8 h-full m-auto">
-      <header class="flex flex-col md:flex-row justify-between md:items-end">
-        <h1 class="flex-none text-2xl font-bold">0x08 :
-          2D Animations (Project)</h1>
-        <p class="md:text-right text-xs md:text-sm" id="by"></p>
-      </header>
-      <div class="flex-1 flex flex-col lg:flex-row
-                  gap-4 lg:gap-8">
-        <main class="experiment flex-1 flex flex-col gap-2">
-          <div class="flex-1 relative">
-            <canvas id="myCanvas"
-                    width="10" height="1"
-                    class=" bg-slate-100 w-full h-full"></canvas>
-            <div class="absolute top-0 right-0 text-center">
-              <a class="cursor-pointer block p-2
-                        text-blue-300 hover:text-blue-500
-                        active:text-blue-700"
-                 href="javascript:saveCanvas()"
-                 title="Download canvas as image."
-                 ><ion-icon
-                    name="save"
-                    class="text-3xl"
-                    ></ion-icon><br/>
-                <span class="text-sm">Download</span></a>
-          </div>          </div>
-        </main>
-        <aside class="flex-none flex flex-col gap-2
-                    lg:max-w-sm min-h-52"
-               id="side-note">
-          <h2 class="text-lg font-bold">Simple
-            <a href="https://developer.mozilla.org/en-US/docs/Web/API/window/requestAnimationFrame"
-               ><code>requestAnimationFrame</code></a></h2>
-          <p>The value updated by <code>stepperOne</code>
-            is:</p>
-          <pre class="text-xs"><code id="valueFromStepperOne"></code></pre>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Computer Graphics Project</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
+	<style>
+        html, body {
+			position: absolute;
+			top: 0px;
+			left: 0px;
+			right: 0px;
+			bottom: 0px;
+			padding: 0px;
+			margin: 0px;
+			overflow: hidden;
+			display: flex;
+			height: 100%;
+			width: 100%;
+			background-color: #000;
+			cursor:none;
+        }
 
-          <div class="hidden">
-            <h2 class="text-lg font-bold">Normalising speed in
-              a <a href="https://developer.mozilla.org/en-US/docs/Web/API/window/requestAnimationFrame"
-                   ><code>rAF</code> callback</a></h2>
-            <p>The returned numberline will be of the same
-              scale, irrespective of refresh
-              rate <code>requestAnimationFrame</code></p>
+		canvas 
+		{
+			margin: auto auto;
+		}
 
-            <p>The value updated by <code>stepperTwo</code>
-              is:</p>
-            <pre><code id="valueFromStepperTwo"></code></pre>
-          </div>
+		#downloadBtn {
+			position: fixed;
+    		top: 40px;
+    		right: 10px;
+    		z-index: 1001;   
+        }
 
-          <div class="hidden">
-            <h3>Using <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Classes"
-                         >Javascript <code>class</code></a></h3>
-            <p>The value updated by <code>stepperThree</code>
-              is:</p>
-            <pre><code id="valueFromStepperThree"></code></pre>
-          </div>
-          
-        </aside>
-      </div>
-    </div>
-    <script type="text/javascript"
-            src="./canvas-helpers.js"></script>
-    <script type="text/javascript"
-            src="./steppers.js"></script>
-    <script type="text/javascript"
-            src="./domel.js"></script>
-    <script type="text/javascript"
-            src="./clock.js"></script>
-    <script type="text/javascript"
-            src="./experiment.js"></script>
-    <script type="text/javascript"
-            src="./main.js"></script>
-    <script type="text/javascript">
-      main()
+        #projectInfo {
+            position: fixed;   
+            top: 10px;         
+            left: 10px;        
+            color: white;      
+            z-index: 1000;     
+			font-size: 20px;
+        }
+
+		#creatorInfo {
+			position: fixed;
+    		top: 10px;
+    		right: 10px; 
+    		color: white;
+			z-index: 1000;
+			font-size: 20px;
+			white-space: nowrap;
+        }
+
+    </style>
+</head>
+<body>
+	<div id="projectInfo">0x08 : 2D Animations (Project: BlackHole Project)</div>
+	<div id="creatorInfo">Created by Tutors 102117149: Garv Bundel | 102117162: K Sushanth Raj Singh</div>
+
+    <canvas id="glscreen"></canvas>
+    <button id="downloadBtn">Download</button>
+    <script id="2d-fragment-shader" type="x-shader/x-fragment">
+        #ifdef GL_ES
+        precision mediump float;
+        #endif
+
+        #define PI 3.14159265359
+
+        uniform sampler2D u_image;
+        varying vec2 v_texCoord;
+
+        uniform vec2 u_resolution;
+        uniform vec2 u_mouse;
+        uniform float u_mass;
+        uniform float u_time;
+        uniform float u_clickedTime;
+
+        vec2 rotate(vec2 mt, vec2 st, float angle){
+            float cos = cos((angle + u_clickedTime) * PI);
+            float sin = sin(angle * 0.0);
+
+            float nx = (cos * (st.x - mt.x)) + (sin * (st.y - mt.y)) + mt.x;
+            float ny = (cos * (st.y - mt.y)) - (sin * (st.x - mt.x)) + mt.y;
+            return vec2(nx, ny);
+        }
+
+        void main() {
+            vec2 st = vec2(gl_FragCoord.x, u_resolution.y - gl_FragCoord.y)/u_resolution;
+            vec2 mt = vec2(u_mouse.x, u_resolution.y - u_mouse.y)/u_resolution;
+
+            float dx = st.x - mt.x;
+            float dy = st.y - mt.y;
+
+            float dist = sqrt(dx * dx + dy * dy);
+            float pull = u_mass / (dist * dist);
+
+            vec3 color = vec3(0.0);
+
+            vec2 r = rotate(mt, st, pull);
+            vec4 imgcolor = texture2D(u_image, r);
+            color = vec3(
+                (imgcolor.x - (pull * 0.25)),
+                (imgcolor.y - (pull * 0.25)), 
+                (imgcolor.z - (pull * 0.25))
+            );
+
+            gl_FragColor = vec4(color,1.);
+        }
     </script>
-  </body>
+    <script id="2d-vertex-shader" type="x-shader/x-vertex">
+        attribute vec2 a_position;
+        attribute vec2 a_texCoord;
+
+        varying vec2 v_texCoord;
+        void main() {
+            gl_Position = vec4(a_position, 0, 1);
+            v_texCoord = a_texCoord;
+        }
+    </script>
+    <script src="index.js"></script>
+</body>
 </html>
